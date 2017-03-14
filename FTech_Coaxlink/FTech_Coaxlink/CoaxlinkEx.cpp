@@ -163,7 +163,7 @@ CCoaxlinkEx::CCoaxlinkEx(int nIf, int nDv)
 	m_hGrabDone = CreateEvent(NULL, FALSE, FALSE, NULL);
 	m_pbyBuffer = NULL;
 
-	reallocBuffers(EURESYS_BUFFER_COUNT);
+	//reallocBuffers(EURESYS_BUFFER_COUNT);
 }
 
 
@@ -246,6 +246,12 @@ bool CCoaxlinkEx::OnStartAcquisition(uint64_t nCount)
 		m_pbyBuffer = new BYTE[w*h*bpp/8];
 		ZeroMemory(m_pbyBuffer, w*h*bpp/8);
 
+		// revoke current buffers (if any)
+		// allocate bufferCount buffers (if bufferSize is zero, the size is determined automatically)
+		// announce the new buffers to the data stream
+		// queue the new buffers to the data stream input fifo
+		reallocBuffers(EURESYS_BUFFER_COUNT);
+
 		enableEvent<CicData>();
 
 		start(nCount);
@@ -267,6 +273,9 @@ bool CCoaxlinkEx::OnStopAcquisition()
 
 		flushEvent<CicData>();
 
+		//discard pending buffers (if any)
+		//queue all buffers to the data stream input fifo, in the initial order 
+		//(i.e., the order in which they were announced with reallocBuffers or announceBuffer)
 		resetBufferQueue();
 
 		return true;
@@ -322,6 +331,16 @@ bool CCoaxlinkEx::GetWidth(int64_t &nValue)
 bool CCoaxlinkEx::GetHeight(int64_t &nValue)
 {
 	return GetValueInt(EStreamModule, "Height", nValue);
+}
+
+bool CCoaxlinkEx::SetWidth(int64_t nValue)
+{
+	return SetValueInt(ERemoteDevice, "Width", nValue);
+}
+
+bool CCoaxlinkEx::SetHeight(int64_t nValue)
+{
+	return SetValueInt(ERemoteDevice, "Height", nValue);
 }
 
 bool CCoaxlinkEx::GetBpp(int64_t &nValue)
