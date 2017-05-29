@@ -9,7 +9,7 @@
 
 bool CCoaxlinkEx::GetNumberOfInterfaces(int &nValue)
 {
-	GenTL::TL_HANDLE hTl = NULL;
+	TL_HANDLE hTl = NULL;
 	
 	try
 	{
