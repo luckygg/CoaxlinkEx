@@ -3,19 +3,27 @@
 //----------------------------------------------------------
 // Programmed by William Kim
 //----------------------------------------------------------
-// Last Update : 2017-03-14 13:13
+// Last Update : 2017-05-29 14:19
 // Modified by William Kim
 //----------------------------------------------------------
 #pragma once
 
+#define COAXLINK_VERSION 7.1
+
 #define EURESYS_BUFFER_COUNT 20
 
 #include <EGrabber.h>
-#include <EuresysGenTL.h>
-//#include <EuresysSharedGenTL.h>
-
 using namespace Euresys;
+
+#ifdef COAXLINK_VERSION > 7.0
+#include <EGenTL.h>
+using namespace GenTL;
+#else
+#include <EuresysGenTL.h>
 using namespace GenICam::Client;
+#endif
+
+//#include <EuresysSharedGenTL.h>
 
 enum EModule{EInterface=0, EDevice, ERemoteDevice, EStreamModule};
 typedef EGrabber<CallbackMultiThread> EGrabberMultiThread;
@@ -133,6 +141,7 @@ public :
 	//******************************************************************************************************************
 	/// \brief					Remote Device의 파라미터 값을 Type별로 얻는 함수.
 	/// \param [in] strNodeName	파라미터의 Node Name 입력.
+	/// \param [in]  Value		파라미터의 값 입력.
 	/// \param [out] Value		파라미터의 값 확인.
 	/// \param bool				결과 반환.
 	bool GetValueStringCamera(CString strNodeName, CString &strValue);
@@ -144,9 +153,10 @@ public :
 
 private :
 	//******************************************************************************************************************
-	/// \brief					Module별로 파라미터 값을 Type별로 얻는 함수.
+	/// \brief					Module별로 파라미터 값을 Type별로 Get/Set 하는 함수.
 	/// \param [in] eModule		Interface / Device / Remote Device / Stream Moudle 입력.
 	/// \param [in] pNodeName	파라미터의 Node Name 입력.
+	/// \param [in]  Value		파라미터의 값 입력.
 	/// \param [out] Value		파라미터의 값 확인.
 	/// \param bool				결과 반환.
 	bool GetValueString(EModule eModule, char* pNodeName, CString &strValue);
@@ -162,7 +172,11 @@ private :
 	BYTE* m_pbyBuffer;	// onNewBufferEvent 에서 image data를 copy하는 메모리.
 
 	//static SharedGenTL m_GenTL;
-	static GenTL m_GenTL; // Coaxlink 핸들.
+#ifdef COAXLINK_VERSION > 7.0
+	static EGenTL m_GenTL; // Coaxlink 핸들.
+#else
+	static GenTL m_GenTL;
+#endif
 
 	virtual void onNewBufferEvent(const NewBufferData& data);
 	virtual void onCicEvent(const CicData& data);

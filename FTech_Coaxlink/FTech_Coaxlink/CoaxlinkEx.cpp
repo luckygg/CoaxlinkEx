@@ -9,7 +9,7 @@
 
 bool CCoaxlinkEx::GetNumberOfInterfaces(int &nValue)
 {
-	TL_HANDLE hTl = NULL;
+	GenTL::TL_HANDLE hTl = NULL;
 	
 	try
 	{
@@ -156,7 +156,12 @@ bool CCoaxlinkEx::GetRemoteDeviceName(int nIfIdx, int nDvIdx, CString &strValue)
 }
 
 //SharedGenTL CCoaxlinkEx::m_GenTL;
+#ifdef COAXLINK_VERSION > 7.0
+EGenTL CCoaxlinkEx::m_GenTL;
+#else
 GenTL CCoaxlinkEx::m_GenTL;
+#endif
+
 CCoaxlinkEx::CCoaxlinkEx(int nIf, int nDv)
 	: EGrabberMultiThread(m_GenTL,nIf,nDv,0)
 {
@@ -201,6 +206,20 @@ void CCoaxlinkEx::onCicEvent(const CicData& data)
 {
 	switch (data.numid) 
 	{
+#ifdef COAXLINK_VERSION > 7.0
+	case ge::EVENT_DATA_NUMID_CIC_CAMERA_TRIGGER_RISING_EDGE:
+		memento("onCicEvent: Camera trigger rising edge: timestamp=" + formatTimestamp(data.timestamp));
+		break;
+	case ge::EVENT_DATA_NUMID_CIC_CAMERA_TRIGGER_FALLING_EDGE:
+		memento("onCicEvent: Camera trigger falling edge: timestamp=" +formatTimestamp(data.timestamp));
+		break;
+	case ge::EVENT_DATA_NUMID_CIC_ALLOW_NEXT_CYCLE:
+		memento("onCicEvent: Allow next cycle: timestamp=" + formatTimestamp(data.timestamp));
+		//execute<DeviceModule>("StartCycle");
+		break;
+	default:
+		break;
+#else
 	case gc::Euresys::EVENT_DATA_NUMID_CIC_CAMERA_TRIGGER_RISING_EDGE:
 		memento("onCicEvent: Camera trigger rising edge: timestamp=" + formatTimestamp(data.timestamp));
 		break;
@@ -213,6 +232,8 @@ void CCoaxlinkEx::onCicEvent(const CicData& data)
 		break;
 	default:
 		break;
+#endif
+	
 	}
 }
 
